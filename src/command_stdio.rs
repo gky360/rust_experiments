@@ -18,14 +18,14 @@ echo hello
 "#;
 
 pub fn run() -> Result<()> {
-    let mut bash_handle = Command::new("bash")
+    let mut child = Command::new("bash")
         .args(&["-c", SCRIPT])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()?;
-    let stdin = bash_handle.stdin.as_mut().unwrap();
+    let stdin = child.stdin.as_mut().unwrap();
     stdin.write_all(INPUT.as_bytes())?;
-    eprintln!("{:?}", bash_handle.wait_with_output()?);
+    eprintln!("{:?}", child.wait_with_output()?);
 
     Ok(())
 }
