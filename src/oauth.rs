@@ -2,7 +2,9 @@ use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 
-use dropbox_sdk::{HyperClient, Oauth2AuthorizeUrlBuilder, Oauth2Type};
+use anyhow::Context as _;
+use dropbox_sdk::check::{self, EchoArg};
+use dropbox_sdk::{ErrorKind, HyperClient, Oauth2AuthorizeUrlBuilder, Oauth2Type};
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server, StatusCode, Uri};
 use lazy_static::lazy_static;
@@ -140,6 +142,15 @@ pub async fn run() -> Result<()> {
     .map_err(|err| Error::msg(err.to_string()))?;
 
     eprintln!("{}", token);
+
+    let client = HyperClient::new(token);
+    let is_valid = match check::user(&client, &EchoArg { query: "".into() }) {
+        Ok(Ok(_)) => Ok(true),
+        Ok(Err(())) => Ok(false),
+        Err(dropbox_sdk::Error(ErrorKind::InvalidToken(_), ..)) => Ok(false),
+        Err(err) => Err(Error::msg(err.to_string())),
+    }
+    .context("Could not validate access token")?;
 
     Ok(())
 }

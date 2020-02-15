@@ -2,6 +2,7 @@
 
 // mod command_stdio;
 // mod command_timeout;
+mod hyper_client;
 mod oauth;
 
 pub type Result<T> = anyhow::Result<T>;
