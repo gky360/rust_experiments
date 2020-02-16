@@ -8,10 +8,9 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0.26"
-# dropbox-sdk = { version = "0.2.0", default_features = false, features = ["dbx_check"] }
-dropbox-sdk = "0.2.0"
+dropbox-sdk = { version = "0.2.0", default_features = false, features = ["dbx_check"] }
 hyper = "0.13.2"
-hyper0_10 = { version = "0.10.16", package = "hyper" }
+hyper0_10 = { version = "0.10", package = "hyper" }
 hyper-rustls = "0.6.2"
 lazy_static = "1.4.0"
 rand = "0.7.3"

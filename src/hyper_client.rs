@@ -88,7 +88,8 @@ impl HyperClient {
             }
             Err(e) => {
                 // error!("error getting OAuth2 token: {}", e);
-                Err(e.into())
+                let msg = e.to_string();
+                Err(dropbox_sdk::Error::with_chain(e, ErrorKind::Msg(msg)))
             }
         }
     }
@@ -177,7 +178,8 @@ impl HttpClient for HyperClient {
                 }
                 Err(other) => {
                     // error!("request failed: {}", other);
-                    return Err(other.into());
+                    let msg = other.to_string();
+                    return Err(dropbox_sdk::Error::with_chain(other, ErrorKind::Msg(msg)));
                 }
             };
 

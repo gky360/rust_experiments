@@ -4,7 +4,7 @@ use std::net::SocketAddr;
 
 use anyhow::Context as _;
 use dropbox_sdk::check::{self, EchoArg};
-use dropbox_sdk::{ErrorKind, HyperClient, Oauth2AuthorizeUrlBuilder, Oauth2Type};
+use dropbox_sdk::ErrorKind;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server, StatusCode, Uri};
 use lazy_static::lazy_static;
@@ -13,7 +13,7 @@ use rand::{thread_rng, Rng};
 use tokio::sync::broadcast::{self, Sender};
 use url::form_urlencoded;
 
-// use crate::hyper_client::{ErrorKind, HyperClient, Oauth2AuthorizeUrlBuilder, Oauth2Type};
+use crate::hyper_client::{HyperClient, Oauth2AuthorizeUrlBuilder, Oauth2Type};
 use crate::{Error, Result};
 
 static DBX_APP_KEY: &str = env!("ACICK_DBX_APP_KEY");
@@ -152,6 +152,8 @@ pub async fn run() -> Result<()> {
         Err(err) => Err(Error::msg(err.to_string())),
     }
     .context("Could not validate access token")?;
+
+    eprintln!("valid: {}", is_valid);
 
     Ok(())
 }
