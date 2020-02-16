@@ -95,7 +95,7 @@ impl HyperClient {
     }
 
     fn http_client() -> hyper0_10::client::Client {
-        let tls = hyper_rustls::TlsClient::new();
+        let tls = hyper_sync_rustls::TlsClient::new();
         let https_connector = hyper0_10::net::HttpsConnector::new(tls);
         let pool_connector = hyper0_10::client::pool::Pool::with_connector(
             hyper0_10::client::pool::Config { max_idle: 1 },
