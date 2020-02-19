@@ -14,7 +14,7 @@ use tokio::task::JoinHandle;
 
 struct ParallelIterator<T> {
     rx: Receiver<T>,
-    handle: TryJoinAll<JoinHandle<Result<(), SendError<T>>>>,
+    _handle: TryJoinAll<JoinHandle<Result<(), SendError<T>>>>,
 }
 
 impl<T> Stream for ParallelIterator<T> {
@@ -52,7 +52,10 @@ where
         task
     });
     let handle = future::try_join_all(tasks);
-    ParallelIterator { rx, handle }
+    ParallelIterator {
+        rx,
+        _handle: handle,
+    }
 }
 
 #[tokio::main(core_threads = 8)]
@@ -62,7 +65,7 @@ pub async fn run() -> crate::Result<()> {
         .par_iter()
         .map(|i| {
             eprintln!("start: {}", i);
-            for _ in 0..100000000 {}
+            for _ in 0..100_000_000 {}
             eprintln!("finish: {}", i);
             i * i
         })
@@ -73,7 +76,7 @@ pub async fn run() -> crate::Result<()> {
         0..10,
         |i| {
             eprintln!("start: {}", i);
-            for _ in 0..100000000 {}
+            for _ in 0..100_000_000 {}
             eprintln!("finish: {}", i);
             i * i
         },
