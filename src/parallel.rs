@@ -9,13 +9,12 @@ use rayon::iter::ParallelIterator as _;
 use rayon::prelude::*;
 use tokio;
 use tokio::stream::{Stream, StreamExt as _};
-use tokio::sync::mpsc::{self, error::SendError};
-use tokio::sync::oneshot::{self, error::RecvError, Receiver};
+use tokio::sync::mpsc::{self, error::SendError, Receiver};
 use tokio::sync::Mutex;
-use tokio::task::JoinHandle;
+use tokio::task::{JoinError, JoinHandle};
 
 struct ParallelIterator<T> {
-    rx: mpsc::Receiver<T>,
+    rx: Receiver<T>,
     _handle: TryJoinAll<JoinHandle<Result<(), SendError<T>>>>,
 }
 
@@ -23,7 +22,7 @@ impl<T> Stream for ParallelIterator<T> {
     type Item = T;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
-        mpsc::Receiver::<T>::poll_next(Pin::new(&mut self.rx), cx)
+        Receiver::<T>::poll_next(Pin::new(&mut self.rx), cx)
     }
 }
 
@@ -61,24 +60,21 @@ where
 }
 
 struct Promise<T: Send> {
-    rx: Receiver<T>,
+    handle: JoinHandle<T>,
 }
 
 impl<T: 'static + Send> Promise<T> {
     fn new<F: 'static + Send + FnOnce() -> T>(resolve: F) -> Self {
-        let (tx, rx) = oneshot::channel();
-        tokio::task::spawn(async {
-            tx.send(resolve()).unwrap_or(());
-        });
-        Promise { rx }
+        let handle = tokio::task::spawn(async { resolve() });
+        Promise { handle }
     }
 }
 
 impl<T: Send> Future for Promise<T> {
-    type Output = std::result::Result<T, RecvError>;
+    type Output = std::result::Result<T, JoinError>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
-        Receiver::poll(Pin::new(&mut self.rx), cx)
+        JoinHandle::poll(Pin::new(&mut self.handle), cx)
     }
 }
 
